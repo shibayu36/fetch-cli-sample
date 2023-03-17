@@ -46,7 +46,14 @@ module Fetch
     end
 
     def show_metadata(url)
-      p "Showing metadata for #{url}"
+      metadata_filename = "#{url_to_filename_prefix(url)}.metadata.json"
+      raise Fetch::Error "No metadata for #{url}" unless File.exist?(metadata_filename)
+
+      metadata = JSON.parse(File.read(metadata_filename))
+
+      metadata.each do |key, value|
+        puts "#{key}: #{value}"
+      end
     end
 
     def url_to_filename_prefix(url)
