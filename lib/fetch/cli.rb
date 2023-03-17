@@ -1,4 +1,6 @@
+require 'uri'
 require 'optparse'
+require 'fetch/fetcher'
 
 module Fetch
   class CLI
@@ -7,8 +9,9 @@ module Fetch
       exit exit_code
     end
 
-    def initialize
+    def initialize(download_dir: Dir.pwd)
       @options = {}
+      @download_dir = download_dir
     end
 
     def start(args)
@@ -28,12 +31,27 @@ module Fetch
       0
     end
 
+    private
+
     def fetch(urls)
-      p "Fetching #{urls}"
+      urls.each do |url|
+        body = Fetch::Fetcher.fetch(url)
+        filename = "#{url_to_filename_prefix(url)}.html"
+        File.write(File.join(@download_dir, filename), body)
+      end
     end
 
     def show_metadata(url)
       p "Showing metadata for #{url}"
+    end
+
+    def url_to_filename_prefix(url)
+      uri = URI.parse(url)
+      host = uri.host
+
+      path = (uri.path.gsub('/', '_') if uri.path != '/')
+
+      "#{host}#{path}"
     end
   end
 end
