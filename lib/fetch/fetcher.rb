@@ -1,4 +1,5 @@
 require 'httparty'
+require 'fetch/error'
 
 module Fetch
   module Fetcher
