@@ -1,12 +1,15 @@
 require 'uri'
 require 'optparse'
 require 'fetch/fetcher'
+require 'fetch/error'
 
 module Fetch
   class CLI
     def self.start(args)
-      exit_code = new.start(args)
-      exit exit_code
+      new.start(args)
+    rescue Fetch::Error => e
+      puts "Error: #{e.message}"
+      exit 1
     end
 
     def initialize(download_dir: Dir.pwd)
@@ -27,8 +30,6 @@ module Fetch
       else
         fetch(args)
       end
-
-      0
     end
 
     private
