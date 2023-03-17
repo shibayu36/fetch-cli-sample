@@ -36,9 +36,12 @@ module Fetch
 
     def fetch(urls)
       urls.each do |url|
-        body = Fetch::Fetcher.fetch(url)
+        body, metadata = Fetch::Fetcher.fetch(url)
         filename = "#{url_to_filename_prefix(url)}.html"
         File.write(File.join(@download_dir, filename), body)
+
+        metadata_filename = "#{url_to_filename_prefix(url)}.metadata.json"
+        File.write(File.join(@download_dir, metadata_filename), metadata.to_json)
       end
     end
 

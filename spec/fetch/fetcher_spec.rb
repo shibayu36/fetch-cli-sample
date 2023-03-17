@@ -1,19 +1,44 @@
+require 'timecop'
 require 'fetch/fetcher'
 require 'fetch/error'
 
 RSpec.describe Fetch::Fetcher do
   describe '.fetch' do
     let(:url) { 'http://example.com' }
-    let(:html) { '<html><body><h1>Hello, World!</h1></body></html>' }
 
     context 'when url is valid, and HTML is fetched' do
+      let(:html) { '<html><body><h1>Hello, World!</h1></body></html>' }
+
       before do
         stub_request(:get, url)
           .to_return(status: 200, body: html, headers: { 'Content-Type': 'text/html' })
       end
 
       it 'fetches HTML content from a given URL' do
-        expect(described_class.fetch(url)).to eq(html)
+        Timecop.freeze(Time.utc(2023, 3, 17, 11, 23)) do
+          body, metadata = described_class.fetch(url)
+          expect(body).to eq(html)
+          expect(metadata).to eq(
+            {
+              num_links: 0,
+              num_imgs: 0,
+              last_fetched: 'Fri Mar 17 2023 11:23 UTC'
+            }
+          )
+        end
+      end
+
+      context 'when HTML has some imgs and links' do
+        let(:html) { '<html><body><a href="/hoge"><img src="/hoge.png" /></a><img src="fuga.jpg" /></body></html>' }
+
+        it 'returns num_links and num_imgs in metadata' do
+          _, metadata = described_class.fetch(url)
+
+          expect(metadata).to include(
+            num_links: 1,
+            num_imgs: 2
+          )
+        end
       end
     end
 
